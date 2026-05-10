@@ -1,11 +1,11 @@
 import {
-  fail,
   MESSAGE_PATTERNS,
-  ok,
   PreferenceGetCommandSchema,
   type PreferenceRecord,
   PreferenceSetCommandSchema,
   type RpcEnvelope,
+  fail,
+  ok,
 } from '@acumen/shared'
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq'
 import { Injectable, Logger } from '@nestjs/common'

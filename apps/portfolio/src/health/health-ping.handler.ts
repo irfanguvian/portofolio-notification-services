@@ -1,4 +1,4 @@
-import { MESSAGE_PATTERNS, ok, type RpcEnvelope } from '@acumen/shared'
+import { MESSAGE_PATTERNS, type RpcEnvelope, ok } from '@acumen/shared'
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
 

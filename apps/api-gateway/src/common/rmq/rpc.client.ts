@@ -1,4 +1,4 @@
-import { isRpcEnvelope, type MessagePattern, type RpcEnvelope } from '@acumen/shared'
+import { type MessagePattern, type RpcEnvelope, isRpcEnvelope } from '@acumen/shared'
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq'
 import { Inject, Injectable } from '@nestjs/common'
 import { type AppEnv, ENV_TOKEN } from '../../config/env.js'

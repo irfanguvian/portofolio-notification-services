@@ -125,7 +125,12 @@ const STEPS = [
     path: '/portfolio/transactions',
     auth: true,
     expect: 201,
-    body: () => ({ symbol: randomSymbol(), type: randomType(), qty: randomQty(), price: randomPrice() }),
+    body: () => ({
+      symbol: randomSymbol(),
+      type: randomType(),
+      qty: randomQty(),
+      price: randomPrice(),
+    }),
     capture: (json, ctx) => {
       ctx.lastTxId = json.id
     },
@@ -137,7 +142,12 @@ const STEPS = [
     path: '/portfolio/transactions',
     auth: true,
     expect: 201,
-    body: () => ({ symbol: randomSymbol(), type: randomType(), qty: randomQty(), price: randomPrice() }),
+    body: () => ({
+      symbol: randomSymbol(),
+      type: randomType(),
+      qty: randomQty(),
+      price: randomPrice(),
+    }),
   },
   {
     id: '11',
@@ -146,7 +156,12 @@ const STEPS = [
     path: '/portfolio/transactions',
     auth: true,
     expect: 201,
-    body: () => ({ symbol: randomSymbol(), type: randomType(), qty: randomQty(), price: randomPrice() }),
+    body: () => ({
+      symbol: randomSymbol(),
+      type: randomType(),
+      qty: randomQty(),
+      price: randomPrice(),
+    }),
   },
   {
     id: '12',
@@ -252,7 +267,7 @@ async function runStep(step, user, ctx) {
     }
     const tag = pc.red('FAIL')
     console.log(
-      `STEP ${step.id} [user=${user.email}] ${step.method} ${step.path} → ${last?.status ?? 'no-response'} ${tag} ${pc.dim('poll exhausted: ' + step.name)}`,
+      `STEP ${step.id} [user=${user.email}] ${step.method} ${step.path} → ${last?.status ?? 'no-response'} ${tag} ${pc.dim(`poll exhausted: ${step.name}`)}`,
     )
     if (last?.json !== undefined) {
       console.log(pc.red(`  body: ${JSON.stringify(last.json).slice(0, 400)}`))

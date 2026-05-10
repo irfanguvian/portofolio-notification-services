@@ -1,11 +1,11 @@
 import {
-  fail,
   MESSAGE_PATTERNS,
-  ok,
   type RpcEnvelope,
   RuleGetCommandSchema,
   type RuleRecord,
   RuleSetCommandSchema,
+  fail,
+  ok,
 } from '@acumen/shared'
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq'
 import { Injectable, Logger } from '@nestjs/common'

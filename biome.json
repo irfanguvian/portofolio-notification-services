@@ -18,6 +18,7 @@
       "**/pnpm-lock.yaml",
       "**/.tsbuildinfo",
       ".omc/**",
+      "graphify-out/**",
       "prisma/seed/index.js",
       "prisma/seed/index.js.map",
       "prisma/seed/index.d.ts"

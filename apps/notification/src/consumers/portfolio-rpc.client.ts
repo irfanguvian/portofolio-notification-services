@@ -1,9 +1,9 @@
 import {
-  isRpcEnvelope,
   MESSAGE_PATTERNS,
   type PreferenceRecord,
   type RpcEnvelope,
   type RuleRecord,
+  isRpcEnvelope,
 } from '@acumen/shared'
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq'
 import { Injectable, Logger } from '@nestjs/common'

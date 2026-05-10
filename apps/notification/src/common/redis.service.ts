@@ -1,5 +1,4 @@
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common'
-// biome-ignore lint/style/useImportType: Redis is used as both type and runtime constructor
 import { Redis as RedisClient } from 'ioredis'
 import { REDIS_URL } from './tokens.js'
 

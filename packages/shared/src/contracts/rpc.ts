@@ -31,11 +31,7 @@ export function ok<T>(data: T): RpcOk<T> {
   return { ok: true, data }
 }
 
-export function fail(
-  code: RpcErrorCode | string,
-  message: string,
-  details?: unknown,
-): RpcErr {
+export function fail(code: RpcErrorCode | string, message: string, details?: unknown): RpcErr {
   return { ok: false, error: { code, message, details } }
 }
 

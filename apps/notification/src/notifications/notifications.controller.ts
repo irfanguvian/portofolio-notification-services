@@ -1,10 +1,10 @@
 import {
-  fail,
   MESSAGE_PATTERNS,
-  type NotificationRecord,
   NotificationListCommandSchema,
-  ok,
+  type NotificationRecord,
   type RpcEnvelope,
+  fail,
+  ok,
 } from '@acumen/shared'
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq'
 import { Controller, Logger } from '@nestjs/common'

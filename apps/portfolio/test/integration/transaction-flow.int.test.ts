@@ -5,10 +5,10 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   EXCHANGES,
-  isRpcEnvelope,
   MESSAGE_PATTERNS,
   ROUTING_KEYS,
   type TransactionRecord,
+  isRpcEnvelope,
 } from '@acumen/shared'
 import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify'
