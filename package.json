@@ -1,0 +1,39 @@
+{
+  "name": "acumen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "build": "pnpm -r build",
+    "test:integration": "pnpm -r test:integration",
+    "dev": "concurrently -n gateway,portfolio,notification -c green,cyan,magenta \"pnpm --filter @acumen/api-gateway dev\" \"pnpm --filter @acumen/portfolio dev\" \"pnpm --filter @acumen/notification dev\"",
+    "start": "concurrently -n gateway,portfolio,notification -c green,cyan,magenta \"pnpm --filter @acumen/api-gateway start\" \"pnpm --filter @acumen/portfolio start\" \"pnpm --filter @acumen/notification start\"",
+    "dev:setup": "pnpm compose:up:infra && pnpm prisma:migrate && pnpm seed",
+    "compose:up": "docker compose -f docker/docker-compose.yml up -d",
+    "compose:up:infra": "docker compose -f docker/docker-compose.yml up -d postgres rabbitmq redis",
+    "compose:down": "docker compose -f docker/docker-compose.yml down -v",
+    "compose:dev:up": "docker compose -f docker/docker-compose.dev.yml up -d",
+    "compose:dev:down": "docker compose -f docker/docker-compose.dev.yml down -v",
+    "seed": "pnpm --workspace-concurrency=1 --filter @acumen/api-gateway --filter @acumen/portfolio --filter @acumen/notification exec prisma db seed",
+    "journey": "node scripts/user-journey.mjs",
+    "postman": "npx -y newman run postman/Acumen.postman_collection.json -e postman/Acumen.postman_environment.json --bail --delay-request 500",
+    "prisma:generate": "pnpm --filter @acumen/api-gateway --filter @acumen/portfolio --filter @acumen/notification run prisma:generate",
+    "prisma:migrate": "pnpm --workspace-concurrency=1 --filter @acumen/api-gateway --filter @acumen/portfolio --filter @acumen/notification run prisma:migrate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.10.5",
+    "concurrently": "^9.1.2",
+    "dotenv-cli": "^7.4.4",
+    "tsx": "^4.19.2",
+    "typescript": "~5.4.5",
+    "vitest": "^2.1.8"
+  }
+}

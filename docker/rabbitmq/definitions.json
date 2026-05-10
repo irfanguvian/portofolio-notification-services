@@ -1,0 +1,124 @@
+{
+  "_comment": "Topology mirrors @acumen/shared/constants/messaging. Exchanges: portfolio.events (topic), portfolio.events.dlx (topic), acumen.rpc (topic, used for cross-service RPC including health.ping). Queues: portfolio.commands, notification.commands, notification.transaction.created (DLX-routed -> .retry on transaction.created.retry), notification.transaction.created.retry (TTL=5000, dead-letters back to portfolio.events on transaction.created), notification.transaction.created.dlq-final (terminal). Routing keys: transaction.created, transaction.created.retry, transaction.created.failed.",
+  "rabbit_version": "3.13.0",
+  "users": [
+    {
+      "name": "acumen",
+      "password": "acumen",
+      "tags": "administrator",
+      "hashing_algorithm": "rabbit_password_hashing_sha256"
+    }
+  ],
+  "vhosts": [{ "name": "/" }],
+  "permissions": [
+    {
+      "user": "acumen",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "policies": [],
+  "parameters": [],
+  "global_parameters": [],
+  "exchanges": [
+    {
+      "name": "portfolio.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "portfolio.events.dlx",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "acumen.rpc",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "portfolio.commands",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "notification.commands",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "notification.transaction.created",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "portfolio.events.dlx",
+        "x-dead-letter-routing-key": "transaction.created.retry"
+      }
+    },
+    {
+      "name": "notification.transaction.created.retry",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 5000,
+        "x-dead-letter-exchange": "portfolio.events",
+        "x-dead-letter-routing-key": "transaction.created"
+      }
+    },
+    {
+      "name": "notification.transaction.created.dlq-final",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "portfolio.events",
+      "vhost": "/",
+      "destination": "notification.transaction.created",
+      "destination_type": "queue",
+      "routing_key": "transaction.created",
+      "arguments": {}
+    },
+    {
+      "source": "portfolio.events.dlx",
+      "vhost": "/",
+      "destination": "notification.transaction.created.retry",
+      "destination_type": "queue",
+      "routing_key": "transaction.created.retry",
+      "arguments": {}
+    },
+    {
+      "source": "portfolio.events.dlx",
+      "vhost": "/",
+      "destination": "notification.transaction.created.dlq-final",
+      "destination_type": "queue",
+      "routing_key": "transaction.created.failed",
+      "arguments": {}
+    }
+  ]
+}

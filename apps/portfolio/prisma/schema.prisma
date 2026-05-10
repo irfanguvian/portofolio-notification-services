@@ -1,0 +1,57 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PORTFOLIO")
+  schemas  = ["portfolio"]
+}
+
+enum TxType {
+  BUY
+  SELL
+
+  @@schema("portfolio")
+}
+
+enum Channel {
+  EMAIL
+  SMS
+  PUSH
+
+  @@schema("portfolio")
+}
+
+model Transaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  symbol    String
+  type      TxType
+  qty       Decimal  @db.Decimal(20, 8)
+  price     Decimal  @db.Decimal(20, 8)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@schema("portfolio")
+}
+
+model UserPreference {
+  userId    String   @id @db.Uuid
+  channel   Channel
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@schema("portfolio")
+}
+
+model NotificationRule {
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String  @db.Uuid
+  eventType String
+  enabled   Boolean
+
+  @@unique([userId, eventType])
+  @@schema("portfolio")
+}

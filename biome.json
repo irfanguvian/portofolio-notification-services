@@ -1,0 +1,69 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "ignore": [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/prisma/migrations/**",
+      "**/prisma/client/**",
+      "**/*.gen.ts",
+      "**/coverage/**",
+      "**/.pnpm-store/**",
+      "**/pnpm-lock.yaml",
+      "**/.tsbuildinfo",
+      ".omc/**",
+      "prisma/seed/index.js",
+      "prisma/seed/index.js.map",
+      "prisma/seed/index.d.ts"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useNodejsImportProtocol": "warn",
+        "useImportType": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noStaticOnlyClass": "off"
+      }
+    }
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2
+    }
+  }
+}

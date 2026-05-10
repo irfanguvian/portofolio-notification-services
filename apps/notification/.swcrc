@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "sourceMaps": true,
+  "module": {
+    "type": "nodenext"
+  },
+  "jsc": {
+    "target": "es2022",
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true,
+      "dynamicImport": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "keepClassNames": true,
+    "baseUrl": "./"
+  },
+  "exclude": [
+    "^test/.*$",
+    "^dist/.*$",
+    "^node_modules/.*$",
+    "^.+\\.test\\.ts$",
+    "^.+\\.int\\.test\\.ts$"
+  ]
+}

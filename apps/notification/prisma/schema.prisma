@@ -1,0 +1,36 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  output          = "./client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_NOTIFICATION")
+  schemas  = ["notification"]
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  DEAD
+
+  @@schema("notification")
+}
+
+model Notification {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @db.Uuid
+  eventType String
+  channel   String
+  payload   Json
+  status    NotificationStatus @default(PENDING)
+  attempts  Int                @default(0)
+  lastError String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@schema("notification")
+}

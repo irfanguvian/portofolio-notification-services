@@ -1,0 +1,54 @@
+{
+  "name": "@acumen/notification",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build --builder swc",
+    "dev": "dotenv -e ../../.env -- sh -c \"nest build --builder swc && concurrently -n swc,node -c yellow,green --kill-others 'nest build --builder swc --watch --preserveWatchOutput' 'node --watch dist/main.js'\"",
+    "start": "dotenv -e ../../.env -- node dist/main.js",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test:integration": "vitest run --config vitest.config.ts",
+    "prisma:generate": "dotenv -e ../../.env -- prisma generate",
+    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate deploy"
+  },
+  "prisma": {
+    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@acumen/shared": "workspace:*",
+    "@golevelup/nestjs-rabbitmq": "^5.7.0",
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/platform-fastify": "^10.4.15",
+    "@prisma/client": "^5.22.0",
+    "amqplib": "^0.10.5",
+    "ioredis": "^5.4.2",
+    "nestjs-pino": "^4.2.0",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@nestjs/schematics": "^10.2.3",
+    "@nestjs/testing": "^10.4.15",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.15.33",
+    "@testcontainers/postgresql": "^10.16.0",
+    "@testcontainers/rabbitmq": "^10.16.0",
+    "@types/amqplib": "^0.10.6",
+    "@types/node": "^22.10.5",
+    "dotenv-cli": "^7.4.4",
+    "prisma": "^5.22.0",
+    "testcontainers": "^10.16.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.4.5",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^2.1.8"
+  }
+}

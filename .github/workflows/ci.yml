@@ -1,0 +1,149 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: '10.33.0'
+  NODE_VERSION: '22'
+
+jobs:
+  quality:
+    name: Lint + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm prisma:generate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm -r build
+
+  integration:
+    name: Integration tests (Testcontainers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [quality]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Verify Docker
+        run: docker version
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm prisma:generate
+
+      - name: Integration tests
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
+        run: pnpm -r test:integration
+
+  e2e:
+    name: End-to-end (compose + journey + newman)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch'
+    needs: [quality]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm prisma:generate
+
+      - name: Compose up
+        run: pnpm compose:up
+
+      - name: Wait for gateway healthy
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/healthz >/dev/null 2>&1; then
+              echo "gateway up after $i probe(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "gateway never became healthy"
+          docker compose -f docker/docker-compose.yml ps
+          docker compose -f docker/docker-compose.yml logs api-gateway
+          exit 1
+
+      - name: Migrate
+        run: pnpm prisma:migrate
+
+      - name: Seed
+        run: pnpm seed
+
+      - name: User journey
+        run: pnpm journey
+
+      - name: Postman / Newman
+        run: |
+          npx -y newman run postman/Acumen.postman_collection.json \
+            -e postman/Acumen.postman_environment.json \
+            --bail --delay-request 500
+
+      - name: Compose logs on failure
+        if: failure()
+        run: docker compose -f docker/docker-compose.yml logs --no-color
+
+      - name: Compose down
+        if: always()
+        run: pnpm compose:down

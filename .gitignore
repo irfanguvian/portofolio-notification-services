@@ -1,0 +1,61 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+**/dist/
+build/
+.next/
+.turbo/
+.cache/
+.tmp/
+tmp/
+
+# typescript incremental
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# tests
+coverage/
+.vitest-cache/
+.nyc_output/
+newman-report.*
+newman/
+
+# prisma generated clients (custom output dirs)
+**/.prisma/
+apps/notification/prisma/client/
+apps/api-gateway/prisma/seed/index.js
+apps/api-gateway/prisma/seed/index.js.map
+apps/api-gateway/prisma/seed/index.d.ts
+apps/portfolio/prisma/seed/index.js
+apps/portfolio/prisma/seed/index.js.map
+apps/portfolio/prisma/seed/index.d.ts
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs / runtime
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.pid
+*.seed
+*.pid.lock
+pids/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# tooling
+.omc/
+graphify-out/*

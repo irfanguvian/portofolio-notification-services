@@ -1,0 +1,433 @@
+{
+  "info": {
+    "_postman_id": "9c4a3a1f-1234-4abc-9def-acumen-coll-0001",
+    "name": "Acumen — Portfolio Activity & Notification System",
+    "description": "Per-step API journey across all three Acumen apps. Run order mirrors scripts/user-journey.mjs and docs/USER_JOURNEY.md (steps 01..13).\n\n  newman run postman/Acumen.postman_collection.json -e postman/Acumen.postman_environment.json --bail --delay-request 500\n\nVariables (token, userId, transactionId, notificationId) are captured by test scripts and chained automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.environment.get('baseUrl')) {",
+          "  pm.environment.set('baseUrl', 'http://localhost:3000');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const name = pm.info.requestName;",
+          "console.log('[' + name + '] status=' + pm.response.code + ' time=' + pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": ["{{baseUrl}}"],
+              "path": ["healthz"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('healthz returns 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('status field present', () => pm.expect(json).to.have.property('status'));",
+                  "pm.test('checks include downstream rpc keys', () => {",
+                  "  pm.expect(json).to.have.property('checks');",
+                  "  pm.expect(json.checks).to.have.property('db');",
+                  "  pm.expect(json.checks).to.have.property('rmq');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('register returns 200/201/409', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201, 409]);",
+                  "});",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.token) pm.environment.set('token', json.token);",
+                  "  if (json && json.userId) pm.environment.set('userId', json.userId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login returns 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('token present', () => pm.expect(json).to.have.property('token').that.is.a('string'));",
+                  "pm.environment.set('token', json.token);",
+                  "pm.environment.set('userId', json.userId);",
+                  "pm.environment.set('pollAttempt', '0');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Negative",
+      "item": [
+        {
+          "name": "Unauthenticated Tx → 401",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"AAPL\",\n  \"type\": \"BUY\",\n  \"qty\": 1,\n  \"price\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["portfolio", "transactions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('unauthed returns 401', () => pm.expect(pm.response.code).to.equal(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Prefs → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "content-type", "value": "application/json" },
+              { "key": "authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"NOPE\",\n  \"enabled\": \"maybe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('invalid prefs returns 400', () => pm.expect(pm.response.code).to.equal(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Preferences",
+      "item": [
+        {
+          "name": "Set Preferences",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "content-type", "value": "application/json" },
+              { "key": "authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"EMAIL\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('prefs set returns 200/201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Preferences",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('get prefs returns 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('channel = EMAIL', () => pm.expect(json.channel).to.equal('EMAIL'));",
+                  "pm.test('enabled = true', () => pm.expect(json.enabled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Rules",
+      "item": [
+        {
+          "name": "Set Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "content-type", "value": "application/json" },
+              { "key": "authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"TRADE_EXECUTED\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["rules"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rules set returns 200/201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Portfolio",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "content-type", "value": "application/json" },
+              { "key": "authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"{{lastTxSymbol}}\",\n  \"type\": \"{{lastTxType}}\",\n  \"qty\": {{lastTxQty}},\n  \"price\": {{lastTxPrice}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["portfolio", "transactions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const symbols = ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'TSLA'];",
+                  "const symbol = symbols[Math.floor(Math.random() * symbols.length)];",
+                  "const type = Math.random() < 0.5 ? 'BUY' : 'SELL';",
+                  "const qty = Number((Math.random() * 9 + 1).toFixed(4));",
+                  "const price = Number((Math.random() * 500 + 10).toFixed(2));",
+                  "pm.environment.set('lastTxSymbol', symbol);",
+                  "pm.environment.set('lastTxType', type);",
+                  "pm.environment.set('lastTxQty', qty);",
+                  "pm.environment.set('lastTxPrice', price);",
+                  "pm.environment.set('pollAttempt', '0');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('create tx returns 200/201/202', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) pm.environment.set('transactionId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["portfolio", "transactions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('list tx returns 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const body = pm.response.json();",
+                  "const list = Array.isArray(body) ? body : (body && Array.isArray(body.data) ? body.data : []);",
+                  "pm.test('list non-empty', () => pm.expect(list.length).to.be.greaterThan(0));",
+                  "const txId = pm.environment.get('transactionId');",
+                  "if (txId) {",
+                  "  pm.test('contains created transactionId', () => {",
+                  "    pm.expect(list.some((t) => t && t.id === txId)).to.equal(true);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Notifications",
+      "item": [
+        {
+          "name": "Poll",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('notifications returns 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const body = pm.response.json();",
+                  "const list = Array.isArray(body) ? body : (body && Array.isArray(body.data) ? body.data : []);",
+                  "const sent = list.filter((n) => n && n.eventType === 'TRADE_EXECUTED' && n.status === 'SENT');",
+                  "const attempt = parseInt(pm.environment.get('pollAttempt') || '0', 10) + 1;",
+                  "const max = parseInt(pm.environment.get('pollMax') || '10', 10);",
+                  "pm.environment.set('pollAttempt', String(attempt));",
+                  "if (sent.length > 0) {",
+                  "  pm.test('SENT notification observed', () => pm.expect(sent.length).to.be.greaterThan(0));",
+                  "  pm.environment.set('notificationId', sent[0].id);",
+                  "} else if (attempt < max) {",
+                  "  console.log('[poll] attempt ' + attempt + '/' + max + ' — no SENT yet, retrying');",
+                  "  pm.execution.setNextRequest('Poll');",
+                  "} else {",
+                  "  pm.expect.fail('no SENT TRADE_EXECUTED notification after ' + max + ' attempts');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

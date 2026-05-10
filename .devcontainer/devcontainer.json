@@ -1,0 +1,17 @@
+{
+  "name": "acumen-dev",
+  "dockerComposeFile": ["../docker/docker-compose.dev.yml"],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "node",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["biomejs.biome", "prisma.prisma", "vitest.explorer", "humao.rest-client"]
+    }
+  },
+  "forwardPorts": [3000, 3001, 3002, 5432, 5672, 15672, 6379],
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

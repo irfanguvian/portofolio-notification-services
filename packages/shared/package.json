@@ -1,0 +1,43 @@
+{
+  "name": "@acumen/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./logger": {
+      "types": "./dist/logger/index.d.ts",
+      "import": "./dist/logger/index.js"
+    },
+    "./env": {
+      "types": "./dist/env/index.d.ts",
+      "import": "./dist/env/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test:integration": "echo 'no integration tests in shared' && exit 0"
+  },
+  "dependencies": {
+    "pino": "^9.5.0",
+    "pino-std-serializers": "^7.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.4.5"
+  }
+}
