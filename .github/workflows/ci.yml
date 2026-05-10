@@ -76,6 +76,10 @@ jobs:
       - name: Prisma generate
         run: pnpm prisma:generate
 
+      # Build workspace packages consumed by vitest import-analysis (resolves @acumen/* via dist).
+      - name: Build workspace packages
+        run: pnpm --filter './packages/*' build
+
       - name: Integration tests
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'true'
